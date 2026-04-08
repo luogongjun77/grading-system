@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能阅卷系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 40px 0;
+            color: white;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            margin-left: 10px;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .class-item, .exam-item {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .class-item:hover, .exam-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        
+        .class-item.active, .exam-item.active {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-card h3 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            opacity: 0.9;
+            font-size: 0.9em;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .score-input {
+            width: 80px;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 智能阅卷系统</h1>
+            <p>拍照识别 · 自动评分 · 智能辅助 · 全面报告</p>
+        </header>
+        
+        <!-- 班级管理 -->
+        <div class="card" id="class-section">
+            <h2>📚 班级管理</h2>
+            <div class="form-group">
+                <button onclick="showCreateClass()">+ 创建班级</button>
+            </div>
+            <div id="class-form" class="hidden">
+                <div class="form-group">
+                    <label>班级名称</label>
+                    <input type="text" id="class-name" placeholder="如：九年级1班">
+                </div>
+                <div class="form-group">
+                    <label>科目</label>
+                    <select id="class-subject">
+                        <option value="数学">数学</option>
+                        <option value="英语">英语</option>
+                        <option value="语文">语文</option>
+                        <option value="物理">物理</option>
+                        <option value="化学">化学</option>
+                    </select>
+                </div>
+                <button onclick="createClass()">创建</button>
+                <button class="btn-secondary" onclick="hideCreateClass()">取消</button>
+            </div>
+            <div class="grid" id="class-list"></div>
+        </div>
+        
+        <!-- 学生管理 -->
+        <div class="card hidden" id="student-section">
+            <h2>👨‍🎓 学生管理 - <span id="current-class-name"></span></h2>
+            <div class="form-group">
+                <button onclick="showAddStudents()">+ 批量添加学生</button>
+                <button class="btn-secondary" onclick="backToClasses()">返回班级</button>
+            </div>
+            <div id="student-form" class="hidden">
+                <div class="form-group">
+                    <label>学生名单（每行：学号 姓名）</label>
+                    <textarea id="student-list" rows="10" placeholder="2024001 张三&#10;2024002 李四&#10;..."></textarea>
+                </div>
+                <button onclick="addStudents()">添加</button>
+                <button class="btn-secondary" onclick="hideAddStudents()">取消</button>
+            </div>
+            <table id="student-table">
+                <thead>
+                    <tr>
+                        <th>学号</th>
+                        <th>姓名</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        
+        <!-- 考试管理 -->
+        <div class="card hidden" id="exam-section">
+            <h2>📋 考试管理</h2>
+            <div class="form-group">
+                <button onclick="showCreateExam()">+ 创建考试</button>
+                <button onclick="showAnswerSheetGenerator()" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">📝 制作答题卡</button>
+                <button class="btn-secondary" onclick="backToStudents()">返回</button>
+            </div>
+            
+            <!-- 答题卡生成器 -->
+            <div id="answer-sheet-form" class="hidden">
+                <h3 style="margin-bottom: 15px; color: #333;">生成答题卡</h3>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>学校名称</label>
+                        <input type="text" id="sheet-school" placeholder="如：XX中学">
+                    </div>
+                    <div class="form-group">
+                        <label>考试名称</label>
+                        <input type="text" id="sheet-exam" placeholder="如：期中考试">
+                    </div>
+                    <div class="form-group">
+                        <label>科目</label>
+                        <select id="sheet-subject">
+                            <option value="数学">数学</option>
+                            <option value="英语">英语</option>
+                            <option value="语文">语文</option>
+                            <option value="物理">物理</option>
+                            <option value="化学">化学</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>班级</label>
+                        <input type="text" id="sheet-class" placeholder="如：九年级1班">
+                    </div>
+                    <div class="form-group">
+                        <label>选择题数量</label>
+                        <input type="number" id="sheet-choice" value="20" min="0" max="50">
+                    </div>
+                    <div class="form-group">
+                        <label>填空题数量</label>
+                        <input type="number" id="sheet-fill" value="5" min="0" max="20">
+                    </div>
+                    <div class="form-group">
+                        <label>大题数量</label>
+                        <input type="number" id="sheet-essay" value="3" min="0" max="10">
+                    </div>
+                    <div class="form-group">
+                        <label>生成份数</label>
+                        <input type="number" id="sheet-count" value="1" min="1" max="50">
+                    </div>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button onclick="generateAnswerSheet()">生成PDF</button>
+                    <button onclick="downloadTemplate('standard')" class="btn-secondary">标准模板</button>
+                    <button onclick="downloadTemplate('math')" class="btn-secondary">数学模板</button>
+                    <button onclick="downloadTemplate('english')" class="btn-secondary">英语模板</button>
+                    <button class="btn-secondary" onclick="hideAnswerSheetGenerator()">取消</button>
+                </div>
+            </div>
+            
+            <div id="exam-form" class="hidden">
+                <div class="form-group">
+                    <label>考试名称</label>
+                    <input type="text" id="exam-name" placeholder="如：期中考试">
+                </div>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>总分</label>
+                        <input type="number" id="exam-total" value="100">
+                    </div>
+                    <div class="form-group">
+                        <label>选择题分值</label>
+                        <input type="number" id="exam-choice" value="30">
+                    </div>
+                    <div class="form-group">
+                        <label>填空题分值</label>
+                        <input type="number" id="exam-fill" value="20">
+                    </div>
+                    <div class="form-group">
+                        <label>大题分值</label>
+                        <input type="number" id="exam-essay" value="50">
+                    </div>
+                </div>
+                
+                <!-- 标准答案设置 -->
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <h4 style="margin-bottom: 10px;">📋 标准答案设置</h4>
+                    
+                    <!-- 答案输入方式切换 -->
+                    <div class="tabs" style="margin-bottom: 15px;">
+                        <div class="tab active" onclick="switchAnswerTab('text')" id="answer-tab-text">📝 文本输入</div>
+                        <div class="tab" onclick="switchAnswerTab('photo')" id="answer-tab-photo">📷 拍照输入</div>
+                        <div class="tab" onclick="switchAnswerTab('ai')" id="answer-tab-ai">🤖 AI生成</div>
+                    </div>
+                    
+                    <!-- 文本输入 -->
+                    <div id="answer-input-text">
+                        <div class="form-group">
+                            <label>选择题答案（例：{"1":"A","2":"B","3":"C"}）</label>
+                            <textarea id="exam-choice-answers" rows="3" placeholder='{"1":"A","2":"B","3":"C","4":"D"}'></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>填空题答案（例：{"1":"x=3","2":"6","3":"(0,1)"}）</label>
+                            <textarea id="exam-fill-answers" rows="3" placeholder='{"1":"答案1","2":"答案2","3":"答案3"}'></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>大题答案/解题要点（例：{"1":"勾股定理","2":"求根公式","3":"分类讨论"}）</label>
+                            <textarea id="exam-essay-answers" rows="4" placeholder='{"1":"解题要点1","2":"解题要点2"}'></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- 拍照输入标准答案 -->
+                    <div id="answer-input-photo" class="hidden">
+                        <div class="upload-area" onclick="document.getElementById('answer-photo-input').click()" style="padding: 20px;">
+                            <p>📷 点击上传标准答案图片</p>
+                            <p style="color: #999; font-size: 12px; margin-top: 5px;">拍摄或选择包含标准答案的图片</p>
+                            <input type="file" id="answer-photo-input" accept="image/*" style="display: none" onchange="handleAnswerPhoto(this.files[0])">
+                        </div>
+                        <div id="answer-photo-preview" class="hidden" style="margin-top: 15px;">
+                            <img id="answer-photo-img" style="max-width: 100%; border-radius: 8px;">
+                            <p id="answer-photo-status" style="color: #666; margin-top: 10px;">正在识别...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- AI生成标准答案 -->
+                    <div id="answer-input-ai" class="hidden">
+                        <div class="form-group">
+                            <label>🤖 输入题目内容，AI自动生成标准答案</label>
+                            <textarea id="exam-question-for-ai" rows="5" placeholder="请输入题目内容，AI将识别并生成标准答案...&#10;&#10;或者直接上传题目图片：&#10;（点击下方按钮上传题目图片）"></textarea>
+                        </div>
+                        <button onclick="document.getElementById('question-photo-input').click()" style="background: #11998e;">
+                            📷 上传题目图片
+                        </button>
+                        <input type="file" id="question-photo-input" accept="image/*" style="display: none" onchange="handleQuestionPhoto(this.files[0])">
+                        <button onclick="generateAnswerByAI()" style="background: #667eea; margin-left: 10px;">
+                            🤖 AI生成标准答案
+                        </button>
+                        <div id="ai-answer-result" class="hidden" style="margin-top: 15px; background: #e8f5e9; padding: 15px; border-radius: 8px;">
+                            <h5>🤖 AI生成的标准答案：</h5>
+                            <div id="ai-answer-content" style="margin-top: 10px;"></div>
+                            <button onclick="useAiAnswer()" style="margin-top: 10px;">✓ 使用此答案</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <button onclick="createExam()">创建考试</button>
+                <button class="btn-secondary" onclick="hideCreateExam()">取消</button>
+            </div>
+            <div class="grid" id="exam-list"></div>
+        </div>
+        
+        <!-- 阅卷 -->
+        <div class="card hidden" id="grading-section">
+            <h2>✏️ 智能阅卷 - <span id="current-exam-name"></span></h2>
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('upload')">📷 拍照上传</div>
+                <div class="tab" onclick="switchTab('manual')">✍️ 手动录入</div>
+                <div class="tab" onclick="switchTab('results')">📊 成绩统计</div>
+            </div>
+            
+            <!-- 上传 -->
+            <div class="tab-content active" id="upload-tab">
+                <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+                    <p>📷 点击或拖拽上传答题卡照片</p>
+                    <p style="color: #999; font-size: 14px; margin-top: 10px;">支持 JPG、PNG 格式</p>
+                    <input type="file" id="file-input" accept="image/*" style="display: none" onchange="handleFile(this.files[0])">
+                </div>
+                <div id="upload-preview" class="hidden">
+                    <img id="preview-img" style="max-width: 100%; border-radius: 8px; margin: 20px 0;">
+                    <div id="ocr-result"></div>
+                    <button onclick="confirmGrade()">✓ 确认评分</button>
+                    <button class="btn-secondary" onclick="cancelUpload()">取消</button>
+                </div>
+            </div>
+            
+            <!-- 手动录入 -->
+            <div class="tab-content" id="manual-tab">
+                <div class="form-group">
+                    <label>学号</label>
+                    <input type="text" id="manual-student-no" placeholder="输入学号">
+                </div>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>选择题得分</label>
+                        <input type="number" id="manual-choice" class="score-input" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>填空题得分</label>
+                        <input type="number" id="manual-fill" class="score-input" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>大题得分</label>
+                        <input type="number" id="manual-essay" class="score-input" value="0">
+                    </div>
+                </div>
+                <button onclick="submitManualScore()">提交成绩</button>
+            </div>
+            
+            <!-- 成绩统计 -->
+            <div class="tab-content" id="results-tab">
+                <div id="statistics"></div>
+                <div class="form-group" style="margin-top: 20px;">
+                    <button onclick="exportExcel()">📥 导出Excel</button>
+                    <button class="btn-secondary" onclick="exportPDF()">📄 导出PDF报告</button>
+                </div>
+                <table id="score-table">
+                    <thead>
+                        <tr>
+                            <th>排名</th>
+                            <th>学号</th>
+                            <th>姓名</th>
+                            <th>选择题</th>
+                            <th>填空题</th>
+                            <th>大题</th>
+                            <th>总分</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            
+            <!-- 成绩详情弹窗 -->
+            <div id="score-detail-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto;">
+                <div style="background: white; max-width: 900px; margin: 50px auto; padding: 30px; border-radius: 16px; max-height: 90vh; overflow-y: auto;">
+                    <h2>📋 成绩详情</h2>
+                    <div id="score-detail-content"></div>
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button onclick="closeScoreDetail()">关闭</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-top: 20px;">
+                <button class="btn-secondary" onclick="backToExams()">返回考试列表</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
