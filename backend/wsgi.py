@@ -1,23 +1,12 @@
-from gunicorn.app.base import BaseApplication
+import os
+import sys
 
-class StandaloneApplication(BaseApplication):
-    def __init__(self, app, options=None):
-        self.options = options or {}
-        self.application = app
-        super().__init__()
+# 添加backend目录到路径
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, current_dir)
 
-    def load_config(self):
-        for key, value in self.options.items():
-            self.cfg.set(key.lower(), value)
-
-    def load(self):
-        return self.application
+from render_server import app
 
 if __name__ == "__main__":
-    options = {
-        'bind': '0.0.0.0:' + str(os.environ.get('PORT', 5000)),
-        'workers': 1,
-        'threads': 2,
-        'timeout': 120,
-    }
-    StandaloneApplication(app, options).run()
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host='0.0.0.0', port=port)
