@@ -714,13 +714,19 @@ def get_answer_sheet_template(template_type):
     return send_from_directory(DATA_FOLDER, filename, as_attachment=True)
 
 # 静态文件服务
+# 修复：frontend 在 backend 的上级目录，使用相对路径
+import os as _os
+BACKEND_DIR = _os.path.dirname(_os.path.abspath(__file__))
+PARENT_DIR = _os.path.dirname(BACKEND_DIR)
+FRONTEND_DIR = _os.path.join(PARENT_DIR, 'frontend')
+
 @app.route('/')
 def index():
-    return send_from_directory('frontend', 'index.html')
+    return send_from_directory(FRONTEND_DIR, 'index.html')
 
 @app.route('/<path:path>')
 def static_files(path):
-    return send_from_directory('frontend', path)
+    return send_from_directory(FRONTEND_DIR, path)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
