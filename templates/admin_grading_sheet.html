@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}批改答题卡{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4><i class="bi bi-pencil-square"></i> 批改 - {{ sheet.student.name }}({{ sheet.student_id }}) <span class="ai-badge">AI</span></h4>
+        <div class="d-flex gap-2">
+            <form method="POST" action="{{ url_for('admin_grading_score', detail_id=details[0].id) if details else '#' }}">
+                <input type="hidden" name="action" value="batch_ai">
+                <button type="submit" class="btn btn-warning btn-sm" {% if not details %}disabled{% endif %}><i class="bi bi-robot"></i> 批量AI批改</button>
+            </form>
+            <a href="{{ url_for('admin_grading', exam_id=exam.id) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> 返回</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- 答题卡 -->
+        <div class="col-md-5">
+            <div class="card p-3">
+                <h6><i class="bi bi-file-earmark-ruled"></i> 答题卡
+                    {% if sheet.pdf_path %}
+                    <span class="badge bg-danger"><i class="bi bi-file-earmark-pdf-fill"></i> PDF{{ ' (' ~ sheet.page_number ~ '页)' if sheet.page_number > 1 else '' }}</span>
+                    {% elif sheet.image_path %}
+                    <span class="badge bg-info"><i class="bi bi-image"></i> 图片</span>
+                    {% endif %}
+                </h6>
+
+                {% if sheet.pdf_path %}
+                <!-- PDF答题卡：用iframe或链接展示 -->
+                <div class="mt-2">
+                    {% if sheet.annotated_path %}
+                    <iframe src="/{{ sheet.annotated_path }}" width="100%" height="500" style="border:1px solid #e2e8f0;border-radius:8px"></iframe>
+                    <div class="d-flex gap-2 mt-2 flex-wrap">
+                        <a href="/{{ sheet.pdf_path }}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-earmark-pdf"></i> 原始PDF</a>
+                        <a href="/{{ sheet.annotated_path }}" target="_blank" class="btn btn-sm btn-success"><i class="bi bi-file-earmark-check"></i> 标注PDF（含评分）</a>
+                    </div>
+                    {% else %}
+                    <iframe src="/{{ sheet.pdf_path }}" width="100%" height="500" style="border:1px solid #e2e8f0;border-radius:8px"></iframe>
+                    <a href="/{{ sheet.pdf_path }}" target="_blank" class="btn btn-sm btn-outline-danger mt-2"><i class="bi bi-file-earmark-pdf"></i> 全屏查看PDF</a>
+                    {% endif %}
+                </div>
+                {% elif sheet.image_path %}
+                <img src="/{{ sheet.annotated_path or sheet.image_path }}" class="img-fluid rounded mt-2" id="sheetImg">
+                {% if sheet.annotated_path %}
+                <div class="mt-2">
+                    <a href="/{{ sheet.image_path }}" target="_blank" class="btn btn-sm btn-outline-secondary">查看原图</a>
+                    <a href="/{{ sheet.annotated_path }}" target="_blank" class="btn btn-sm btn-outline-primary">查看标注PDF</a>
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="text-center text-muted py-4">无答题卡</div>
+                {% endif %}
+
+                <div class="mt-3 text-center">
+                    <div class="score-circle {% if sheet.total_score >= exam.total_score * 0.8 %}score-high{% elif sheet.total_score >= exam.total_score * 0.6 %}score-mid{% elif sheet.total_score >= 0 %}score-low{% endif %}">
+                        {{ sheet.total_score if sheet.total_score >= 0 else '-' }}
+                    </div>
+                    <div class="small text-muted mt-1">总分 / {{ exam.total_score }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 逐题评分 -->
+        <div class="col-md-7">
+            {% for sd in details %}
+            {% set q = sd.question %}
+            {% set score = sd.final_score if sd.final_score >= 0 else (sd.ai_score if sd.ai_score >= 0 else None) %}
+            <div class="card p-3 mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">第{{ q.question_number }}题 <span class="badge bg-secondary">{{ q.total_points }}分</span></h6>
+                    {% if score != None %}
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-bold {% if score >= q.total_points * 0.8 %}text-success{% elif score >= q.total_points * 0.6 %}text-warning{% else %}text-danger{% endif %}">
+                            {{ score }}/{{ q.total_points }}
+                        </span>
+                        {% if sd.final_score >= 0 %}<span class="badge bg-success">已确认</span>{% elif sd.ai_score >= 0 %}<span class="badge bg-warning text-dark">AI评分</span>{% else %}<span class="badge bg-danger">未批</span>{% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if q.content_text %}
+                <div class="question-box mt-2 small">{{ q.content_text }}</div>
+                {% endif %}
+
+                {% if sd.ai_feedback %}
+                {% set fb = sd.ai_feedback %}
+                {% if fb.startswith('{') %}
+                {% set fb_data = fb | tojson %}
+                <div class="alert alert-info mt-2 py-1 px-2 small">
+                    <i class="bi bi-robot"></i> AI：{{ fb[:200] }}
+                </div>
+                {% else %}
+                <div class="alert alert-info mt-2 py-1 px-2 small"><i class="bi bi-robot"></i> {{ fb[:200] }}</div>
+                {% endif %}
+                {% endif %}
+
+                <form method="POST" action="{{ url_for('admin_grading_score', detail_id=sd.id) }}" class="row g-2 mt-2 align-items-end">
+                    {% if sd.ai_score < 0 %}
+                    <div class="col-md-3"><input type="hidden" name="action" value="ai_grade">
+                        <button type="submit" class="btn btn-sm btn-warning w-100"><i class="bi bi-robot"></i> AI批改</button></div>
+                    {% else %}
+                    <div class="col-md-3"><input type="hidden" name="action" value="confirm">
+                        <input type="number" name="final_score" class="form-control form-control-sm" value="{{ sd.ai_score }}" min="0" max="{{ q.total_points }}" step="0.5"></div>
+                    <div class="col-md-4"><input type="text" name="teacher_comment" class="form-control form-control-sm" placeholder="评语"></div>
+                    <div class="col-md-2"><button type="submit" class="btn btn-sm btn-success w-100">确认</button></div>
+                    {% endif %}
+                </form>
+            </div>
+            {% endfor %}
+
+            {% if not details %}
+            <div class="card p-4 text-center text-muted">无评分明细，请确认已设置题目</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

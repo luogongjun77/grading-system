@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}智能阅卷系统{% endblock %}
+{% block content %}
+<div class="hero text-center">
+    <div class="container">
+        <h1 class="fw-bold"><i class="bi bi-journal-check"></i> 智能阅卷系统</h1>
+        <p class="lead mt-2 mb-4">班级管理 · 拍题AI · 答题卡设计 · 智能批改 · 成绩分析 · 学生查询</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{{ url_for('query') }}" class="btn btn-light btn-lg"><i class="bi bi-search"></i> 查询成绩</a>
+            <a href="{{ url_for('admin_login') }}" class="btn btn-outline-light btn-lg"><i class="bi bi-shield-lock"></i> 管理入口</a>
+        </div>
+    </div>
+</div>
+<div class="container mt-5">
+    <div class="row g-4">
+        <div class="col-md-3"><div class="card feature-card p-4 text-center"><i class="bi bi-people text-primary" style="font-size:2.5rem"></i><h6 class="mt-2">班级学生管理</h6><small class="text-muted">建班级·批量录入学号姓名</small></div></div>
+        <div class="col-md-3"><div class="card feature-card p-4 text-center"><i class="bi bi-camera-fill text-primary" style="font-size:2.5rem"></i><h6 class="mt-2">拍题AI答题</h6><small class="text-muted">拍照识别·AI生成答案</small></div></div>
+        <div class="col-md-3"><div class="card feature-card p-4 text-center"><i class="bi bi-file-earmark-ruled text-primary" style="font-size:2.5rem"></i><h6 class="mt-2">答题卡设计</h6><small class="text-muted">生成PDF·批量上传评分</small></div></div>
+        <div class="col-md-3"><div class="card feature-card p-4 text-center"><i class="bi bi-bar-chart text-primary" style="font-size:2.5rem"></i><h6 class="mt-2">成绩分析</h6><small class="text-muted">汇总排名·班级对比·导出</small></div></div>
+    </div>
+    <div class="row mt-5"><div class="col-md-8 mx-auto"><div class="card p-4">
+        <h5><i class="bi bi-speedometer2"></i> 快速查成绩</h5>
+        <form method="POST" action="{{ url_for('query') }}" class="mt-3">
+            <div class="row g-3">
+                <div class="col-md-4"><input type="text" class="form-control" name="student_id" placeholder="学号" required></div>
+                <div class="col-md-4"><input type="text" class="form-control" name="name" placeholder="姓名" required></div>
+                <div class="col-md-4"><button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i> 查询</button></div>
+            </div>
+        </form>
+    </div></div></div>
+</div>
+{% endblock %}

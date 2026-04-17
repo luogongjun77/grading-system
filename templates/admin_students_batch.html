@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}批量录入学生{% endblock %}
+{% block content %}
+<div class="container mt-4"><div class="row justify-content-center"><div class="col-md-9">
+    <h4 class="mb-3"><i class="bi bi-person-plus"></i> 批量录入学生</h4>
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card p-4">
+                <h5><i class="bi bi-file-text"></i> 文本输入</h5>
+                <form method="POST">
+                    <div class="mb-3"><label class="form-label">班级</label>
+                        <select name="class_id" class="form-select">
+                            <option value="">不指定</option>
+                            {% for c in classes %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+                        </select></div>
+                    <div class="mb-3"><label class="form-label">学生数据（每行一个：学号 姓名，空格分隔）</label>
+                        <textarea name="students_text" class="form-control" rows="10" placeholder="2024001 张三&#10;2024002 李四&#10;2024003 王五"></textarea></div>
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-upload"></i> 导入</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card p-4">
+                <h5><i class="bi bi-file-earmark-spreadsheet"></i> CSV文件上传</h5>
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3"><label class="form-label">班级</label>
+                        <select name="class_id" class="form-select">
+                            <option value="">不指定</option>
+                            {% for c in classes %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+                        </select></div>
+                    <div class="mb-3"><label class="form-label">CSV文件</label>
+                        <input type="file" name="file" class="form-control" accept=".csv"></div>
+                    <div class="mb-3"><label class="form-label">编码</label>
+                        <select name="encoding" class="form-select"><option value="utf-8">UTF-8</option><option value="gbk">GBK</option></select></div>
+                    <button type="submit" class="btn btn-success w-100"><i class="bi bi-upload"></i> CSV导入</button>
+                </form>
+                <div class="alert alert-light mt-3 small">
+                    <strong>CSV格式：</strong>首行为表头<br>
+                    <code>学号,姓名</code> 或 <code>student_id,name,class_name</code><br>
+                    示例：<code>2024001,张三</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div></div></div>
+{% endblock %}

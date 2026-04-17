@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ '编辑' if action == 'edit' else '添加' }}班级{% endblock %}
+{% block content %}
+<div class="container mt-4"><div class="row justify-content-center"><div class="col-md-6">
+    <h4 class="mb-3">{{ '编辑' if action == 'edit' else '添加' }}班级</h4>
+    <div class="card p-4">
+        <form method="POST">
+            <div class="mb-3"><label class="form-label">班级名称</label><input type="text" name="name" class="form-control" value="{{ cls.name if action == 'edit' else '' }}" placeholder="如：高三1班" required></div>
+            <div class="mb-3"><label class="form-label">年级</label><input type="text" name="grade" class="form-control" value="{{ cls.grade if action == 'edit' else '' }}" placeholder="如：高三"></div>
+            <div class="mb-3"><label class="form-label">班主任</label><input type="text" name="teacher" class="form-control" value="{{ cls.teacher if action == 'edit' else '' }}"></div>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> 保存</button>
+            <a href="{{ url_for('admin_classes') }}" class="btn btn-outline-secondary">取消</a>
+        </form>
+    </div>
+</div></div></div>
+{% endblock %}

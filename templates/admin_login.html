@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}管理员登录{% endblock %}
+{% block content %}
+<div class="container mt-5"><div class="row justify-content-center"><div class="col-md-5">
+    <div class="card p-4"><div class="text-center mb-4">
+        <i class="bi bi-shield-lock" style="font-size:3rem;color:var(--pri)"></i><h4 class="mt-2">管理员登录</h4>
+    </div>
+    <form method="POST">
+        <div class="mb-3"><input type="text" class="form-control" name="username" placeholder="用户名" required autofocus></div>
+        <div class="mb-3"><input type="password" class="form-control" name="password" placeholder="密码" required></div>
+        <button type="submit" class="btn btn-primary w-100"><i class="bi bi-box-arrow-in-right"></i> 登录</button>
+    </form>
+    <div class="text-center mt-3"><small class="text-muted">默认: admin / admin123</small></div>
+</div></div></div></div>
+{% endblock %}

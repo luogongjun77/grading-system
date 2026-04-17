@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}批改 - {{ exam.name }}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4><i class="bi bi-pencil-square"></i> 批改管理 - {{ exam.name }} <span class="ai-badge">AI</span></h4>
+        <div class="d-flex gap-2">
+            <form method="POST" action="{{ url_for('admin_grading_finalize', exam_id=exam.id) }}" onsubmit="return confirm('完成批改？将生成成绩汇总和排名')">
+                <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-check2-all"></i> 完成批改</button>
+            </form>
+            <a href="{{ url_for('admin_exams') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> 返回</a>
+        </div>
+    </div>
+
+    <div class="card p-3 mb-3">
+        <div class="d-flex gap-3 small">
+            <span>答题卡：<strong>{{ sheets|length }}</strong></span>
+            <span>题目数：<strong>{{ questions|length }}</strong></span>
+            <span>总分：<strong>{{ exam.total_score }}</strong></span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light"><tr><th>学号</th><th>姓名</th><th>班级</th><th>已批/总题</th><th>总分</th><th>操作</th></tr></thead>
+                <tbody>
+                {% for s in sheets %}
+                <tr>
+                    <td>{{ s.student_id }}</td>
+                    <td>{{ s.student.name if s.student else '-' }}</td>
+                    <td>{{ s.student.class_info.name if s.student and s.student.class_info else '-' }}</td>
+                    <td>
+                        <div class="progress" style="height:18px;min-width:100px">
+                            {% if s.total_q > 0 %}
+                            <div class="progress-bar bg-{{ 'success' if s.graded_count == s.total_q else 'warning' }}"
+                                 style="width:{{ (s.graded_count/s.total_q*100)|int }}%">{{ s.graded_count }}/{{ s.total_q }}</div>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="fw-bold">{{ s.total_score if s.total_score >= 0 else '-' }}</td>
+                    <td><a href="{{ url_for('admin_grading_sheet', sheet_id=s.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil-square"></i> 批改</a></td>
+                </tr>
+                {% endfor %}
+                {% if not sheets %}
+                <tr><td colspan="6" class="text-center text-muted py-4">暂无答题卡，请先上传</td></tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

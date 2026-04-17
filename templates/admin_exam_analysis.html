@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}成绩分析 - {{ exam.name }}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4><i class="bi bi-bar-chart"></i> 成绩分析 - {{ exam.name }}</h4>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('admin_exam_export', id=exam.id) }}" class="btn btn-success btn-sm"><i class="bi bi-download"></i> 导出CSV</a>
+            {% if exam.status == '已结束' and exam.status != '已发布' %}
+            <form method="POST" action="{{ url_for('admin_exam_publish', id=exam.id) }}">
+                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-broadcast"></i> 发布成绩</button>
+            </form>
+            {% endif %}
+            <a href="{{ url_for('admin_exams') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> 返回</a>
+        </div>
+    </div>
+
+    {% if stats %}
+    <!-- 总览 -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-2"><div class="card stat-card p-3"><div class="text-muted small">人数</div><div class="fs-4 fw-bold">{{ stats.count }}</div></div></div>
+        <div class="col-md-2"><div class="card stat-card p-3" style="border-left-color:#059669"><div class="text-muted small">平均分</div><div class="fs-4 fw-bold">{{ stats.avg }}</div></div></div>
+        <div class="col-md-2"><div class="card stat-card p-3" style="border-left-color:#7c3aed"><div class="text-muted small">中位数</div><div class="fs-4 fw-bold">{{ stats.median }}</div></div></div>
+        <div class="col-md-2"><div class="card stat-card p-3" style="border-left-color:#0891b2"><div class="text-muted small">最高分</div><div class="fs-4 fw-bold text-success">{{ stats.max }}</div></div></div>
+        <div class="col-md-2"><div class="card stat-card p-3" style="border-left-color:#dc2626"><div class="text-muted small">最低分</div><div class="fs-4 fw-bold text-danger">{{ stats.min }}</div></div></div>
+        <div class="col-md-2"><div class="card stat-card p-3" style="border-left-color:#d97706"><div class="text-muted small">标准差</div><div class="fs-4 fw-bold">{{ stats.stdev }}</div></div></div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3"><div class="card p-3 text-center"><div class="fs-2 fw-bold text-success">{{ stats.pass_rate }}%</div><div class="text-muted">及格率</div></div></div>
+        <div class="col-md-3"><div class="card p-3 text-center"><div class="fs-2 fw-bold text-primary">{{ stats.excellent_rate }}%</div><div class="text-muted">优秀率</div></div></div>
+    </div>
+
+    <!-- 分数段分布 -->
+    {% if stats.bins %}
+    <div class="card p-4 mb-4">
+        <h5>分数段分布</h5>
+        <div class="mt-3">
+        {% for label, count in stats.bins.items() %}
+        <div class="d-flex align-items-center mb-1">
+            <span style="width:80px" class="small">{{ label }}</span>
+            <div class="progress flex-grow-1" style="height:22px">
+                <div class="progress-bar {% if label.split('-')[0]|int >= exam.total_score * 0.9 %}bg-success{% elif label.split('-')[0]|int >= exam.total_score * 0.6 %}bg-info{% else %}bg-danger{% endif %}"
+                     style="width:{{ (count / stats.count * 100)|int if stats.count > 0 else 0 }}%">{{ count }}人</div>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+    <!-- 各题得分分析 -->
+    {% if question_stats %}
+    <div class="card p-4 mb-4">
+        <h5>各题得分分析</h5>
+        <div class="table-responsive mt-2">
+            <table class="table table-sm table-bordered">
+                <thead class="table-light"><tr><th>题号</th><th>满分</th><th>平均分</th><th>得分率</th><th>零分人数</th><th>满分人数</th></tr></thead>
+                <tbody>
+                {% for qs in question_stats %}
+                <tr>
+                    <td>第{{ qs.question.question_number }}题</td><td>{{ qs.question.total_points }}</td>
+                    <td>{{ qs.avg }}</td>
+                    <td>
+                        <div class="progress" style="height:18px;min-width:60px">
+                            <div class="progress-bar {% if qs.rate >= 80 %}bg-success{% elif qs.rate >= 60 %}bg-warning{% else %}bg-danger{% endif %}"
+                                 style="width:{{ qs.rate|round }}%">{{ qs.rate|round }}%</div>
+                        </div>
+                    </td>
+                    <td>{{ qs.zero_count }}</td><td>{{ qs.full_count }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 班级对比 -->
+    {% if class_stats %}
+    <div class="card p-4 mb-4">
+        <h5>班级对比</h5>
+        <div class="table-responsive mt-2">
+            <table class="table table-sm table-bordered">
+                <thead class="table-light"><tr><th>班级</th><th>人数</th><th>平均分</th><th>最高分</th><th>最低分</th><th>及格率</th></tr></thead>
+                <tbody>
+                {% for cs in class_stats %}
+                <tr>
+                    <td>{{ cs.class.name }}</td><td>{{ cs.count }}</td><td>{{ cs.avg }}</td>
+                    <td>{{ cs.max }}</td><td>{{ cs.min }}</td>
+                    <td><span class="badge {{ 'bg-success' if cs.pass_rate >= 80 else 'bg-warning text-dark' }}">{{ cs.pass_rate }}%</span></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 成绩明细 -->
+    <div class="card p-4">
+        <h5>成绩汇总</h5>
+        <div class="table-responsive mt-2">
+            <table class="table table-sm table-hover">
+                <thead class="table-light">
+                    <tr><th>年级排名</th><th>班级排名</th><th>学号</th><th>姓名</th><th>班级</th><th>总分</th><th>答题卡</th></tr>
+                </thead>
+                <tbody>
+                {% for sm in summaries %}
+                <tr>
+                    <td>{{ sm.rank_in_grade or '-' }}</td>
+                    <td>{{ sm.rank_in_class or '-' }}</td>
+                    <td>{{ sm.student_id }}</td><td>{{ sm.student.name }}</td>
+                    <td>{{ sm.student.class_info.name if sm.student.class_info else '-' }}</td>
+                    <td class="fw-bold">{{ sm.total_score }}</td>
+                    <td>
+                        {% set sheet = sm.student.answer_sheets|selectattr('exam_id','equalto',exam.id)|list %}
+                        {% if sheet and sheet[0].annotated_path %}
+                        <a href="/{{ sheet[0].annotated_path }}" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-image"></i></a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

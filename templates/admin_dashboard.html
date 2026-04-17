@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}管理控制台{% endblock %}
+{% block content %}
+<div class="container-fluid mt-3">
+<div class="row">
+<div class="col-lg-2 col-md-3">
+    <div class="card p-3 nav-side">
+        <h6 class="text-muted mb-2"><i class="bi bi-menu-button-wide"></i> 导航</h6>
+        <nav class="nav flex-column">
+            <a class="nav-link active" href="{{ url_for('admin_dashboard') }}"><i class="bi bi-speedometer2"></i> 控制台</a>
+            <a class="nav-link" href="{{ url_for('admin_classes') }}"><i class="bi bi-building"></i> 班级管理</a>
+            <a class="nav-link" href="{{ url_for('admin_students') }}"><i class="bi bi-people"></i> 学生管理</a>
+            <a class="nav-link" href="{{ url_for('admin_students_batch') }}"><i class="bi bi-person-plus"></i> 批量录入</a>
+            <hr>
+            <a class="nav-link" href="{{ url_for('admin_exams') }}"><i class="bi bi-journal-text"></i> 考试管理</a>
+            <a class="nav-link" href="{{ url_for('admin_grading', exam_id=1) if exam_count > 0 else '#' }}"><i class="bi bi-pencil-square"></i> 批改</a>
+            <hr>
+            <a class="nav-link" href="{{ url_for('admin_change_password') }}"><i class="bi bi-key"></i> 改密码</a>
+            <a class="nav-link" href="{{ url_for('admin_logout') }}"><i class="bi bi-box-arrow-right"></i> 退出</a>
+        </nav>
+    </div>
+</div>
+<div class="col-lg-10 col-md-9">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4><i class="bi bi-speedometer2"></i> 控制台 <span class="ai-badge">{{ ai_provider }}</span></h4>
+        <span class="text-muted">{{ session.get('admin_username','admin') }}</span>
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-md-2"><div class="card stat-card p-3"><div class="text-muted small">班级</div><div class="fs-3 fw-bold">{{ class_count }}</div></div></div>
+        <div class="col-md-2"><div class="card stat-card p-3" style="border-left-color:#059669"><div class="text-muted small">学生</div><div class="fs-3 fw-bold">{{ student_count }}</div></div></div>
+        <div class="col-md-2"><div class="card stat-card p-3" style="border-left-color:#7c3aed"><div class="text-muted small">考试</div><div class="fs-3 fw-bold">{{ exam_count }}</div></div></div>
+        <div class="col-md-2"><div class="card stat-card p-3" style="border-left-color:#dc2626"><div class="text-muted small">待批改</div><div class="fs-3 fw-bold text-danger">{{ ungraded }}</div></div></div>
+        <div class="col-md-2"><div class="card stat-card p-3" style="border-left-color:#0891b2"><div class="text-muted small">答题卡</div><div class="fs-3 fw-bold">{{ sheet_count }}</div></div></div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4"><a href="{{ url_for('admin_exams') }}" class="card feature-card p-3 text-decoration-none text-dark d-block">
+            <div class="d-flex align-items-center"><i class="bi bi-journal-text text-primary me-3" style="font-size:1.8rem"></i><div><h6 class="mb-0">考试管理</h6><small class="text-muted">创建考试·设置题目·分数</small></div></div></a></div>
+        <div class="col-md-4"><a href="{{ url_for('admin_students_batch') }}" class="card feature-card p-3 text-decoration-none text-dark d-block">
+            <div class="d-flex align-items-center"><i class="bi bi-person-plus text-success me-3" style="font-size:1.8rem"></i><div><h6 class="mb-0">批量录入</h6><small class="text-muted">班级学生·答题卡上传</small></div></div></a></div>
+        <div class="col-md-4"><a href="{{ url_for('admin_classes') }}" class="card feature-card p-3 text-decoration-none text-dark d-block">
+            <div class="d-flex align-items-center"><i class="bi bi-building text-warning me-3" style="font-size:1.8rem"></i><div><h6 class="mb-0">班级管理</h6><small class="text-muted">建班·分班·统计</small></div></div></a></div>
+    </div>
+
+    {% if exams %}
+    <div class="card p-4">
+        <h5>最近考试</h5>
+        <div class="table-responsive mt-2">
+            <table class="table table-hover mb-0">
+                <thead class="table-light"><tr><th>考试</th><th>科目</th><th>总分</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody>
+                {% for e in exams %}
+                <tr>
+                    <td>{{ e.name }}</td><td>{{ e.subject }}</td><td>{{ e.total_score }}</td>
+                    <td><span class="badge {{ 'bg-success' if e.status=='已发布' else ('bg-warning text-dark' if e.status=='已结束' else 'bg-info') }}">{{ e.status }}</span></td>
+                    <td>
+                        <a href="{{ url_for('admin_exam_setup', id=e.id) }}" class="btn btn-sm btn-outline-primary">设置</a>
+                        <a href="{{ url_for('admin_grading', exam_id=e.id) }}" class="btn btn-sm btn-outline-success">批改</a>
+                        <a href="{{ url_for('admin_exam_analysis', id=e.id) }}" class="btn btn-sm btn-outline-info">分析</a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div></div></div>
+{% endblock %}

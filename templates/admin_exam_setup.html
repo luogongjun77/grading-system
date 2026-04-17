@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}题目设置 - {{ exam.name }}{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4><i class="bi bi-gear"></i> {{ exam.name }} - 题目与分数设置</h4>
+        <a href="{{ url_for('admin_exams') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> 返回</a>
+    </div>
+
+    <div class="card p-3 mb-3">
+        <div class="d-flex gap-3 flex-wrap">
+            <span class="badge bg-primary">{{ exam.subject }}</span>
+            <span>总分：<strong>{{ exam.total_score }}</strong></span>
+            <span>已设：{% set ns = namespace(t=0) %}{% for g in groups %}{% set ns.t = ns.t + g.total_points %}{% endfor %}<strong>{{ ns.t }}</strong></span>
+        </div>
+    </div>
+
+    <!-- 添加题目组 -->
+    <div class="card p-4 mb-3">
+        <h6><i class="bi bi-plus-circle"></i> 添加题目组（大题）</h6>
+        <form method="POST" action="{{ url_for('admin_group_add', exam_id=exam.id) }}" class="row g-2 mt-2">
+            <div class="col-md-3"><input type="text" name="name" class="form-control form-control-sm" placeholder="如：一、选择题" required></div>
+            <div class="col-md-2">
+                <select name="question_type" class="form-select form-select-sm">
+                    <option>选择题</option><option>填空题</option><option>解答题</option><option>计算题</option><option>证明题</option><option>作文</option>
+                </select>
+            </div>
+            <div class="col-md-2"><input type="number" name="total_points" class="form-control form-control-sm" placeholder="总分" value="0"></div>
+            <div class="col-md-2"><input type="number" name="sort_order" class="form-control form-control-sm" placeholder="排序" value="{{ groups|length + 1 }}"></div>
+            <div class="col-md-2"><button type="submit" class="btn btn-sm btn-primary w-100">添加</button></div>
+        </form>
+    </div>
+
+    <!-- 各题目组 -->
+    {% for g in groups %}
+    <div class="card p-4 mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{{ g.name }} <span class="badge bg-primary">{{ g.total_points }}分</span> <span class="badge bg-info">{{ g.question_type }}</span></h5>
+            <form method="POST" action="{{ url_for('admin_group_delete', id=g.id) }}" onsubmit="return confirm('删除此大题及所有小题？')">
+                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+            </form>
+        </div>
+
+        <!-- 小题列表 -->
+        {% if g.questions %}
+        <div class="table-responsive mt-3">
+            <table class="table table-sm table-bordered mb-0">
+                <thead class="table-light"><tr><th>题号</th><th>分值</th><th>内容</th><th>参考答案</th><th>操作</th></tr></thead>
+                <tbody>
+                {% for q in g.questions %}
+                <tr>
+                    <td><strong>{{ q.question_number }}</strong></td>
+                    <td>{{ q.total_points }}</td>
+                    <td class="text-truncate" style="max-width:200px">{{ q.content_text[:60] }}{% if not q.content_text %}-{% endif %}</td>
+                    <td>{% if q.reference_answer %}<i class="bi bi-check-circle text-success"></i>{% else %}<i class="bi bi-x-circle text-danger"></i>{% endif %}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('admin_question_edit', id=q.id) }}" class="btn btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                            <form method="POST" action="{{ url_for('admin_generate_answer', id=q.id) }}"><button type="submit" class="btn btn-outline-warning" title="AI生成答案"><i class="bi bi-robot"></i></button></form>
+                            <form method="POST" action="{{ url_for('admin_question_delete', id=q.id) }}" onsubmit="return confirm('删除？')"><button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button></form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- 添加小题 -->
+        <form method="POST" action="{{ url_for('admin_question_add', group_id=g.id) }}" enctype="multipart/form-data" class="row g-2 mt-3">
+            <div class="col-md-1"><input type="text" name="question_number" class="form-control form-control-sm" placeholder="题号" required></div>
+            <div class="col-md-1"><input type="number" name="total_points" class="form-control form-control-sm" placeholder="分值" value="5" step="0.5" required></div>
+            <div class="col-md-4"><input type="text" name="content_text" class="form-control form-control-sm" placeholder="题目内容（可选）"></div>
+            <div class="col-md-2"><input type="file" name="image" class="form-control form-control-sm" accept="image/*"></div>
+            <div class="col-md-1"><button type="submit" class="btn btn-sm btn-success w-100"><i class="bi bi-plus"></i></button></div>
+        </form>
+    </div>
+    {% endfor %}
+
+    {% if not groups %}
+    <div class="card p-5 text-center text-muted"><i class="bi bi-list-task" style="font-size:3rem"></i><p class="mt-2">请先添加题目组（大题），再添加小题</p></div>
+    {% endif %}
+</div>
+{% endblock %}

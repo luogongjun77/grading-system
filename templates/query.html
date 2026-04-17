@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}成绩查询{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card p-4">
+                <h4><i class="bi bi-search"></i> 成绩查询</h4>
+                <form method="POST" class="row g-3 mt-2">
+                    <div class="col-md-5"><input type="text" class="form-control" name="student_id" placeholder="学号" value="{{ request.form.get('student_id','') }}" required></div>
+                    <div class="col-md-5"><input type="text" class="form-control" name="name" placeholder="姓名" value="{{ request.form.get('name','') }}" required></div>
+                    <div class="col-md-2"><button type="submit" class="btn btn-primary w-100"><i class="bi bi-search"></i></button></div>
+                </form>
+            </div>
+
+            {% if student_info %}
+            {% for ed in exams_data %}
+            <div class="card p-4 mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="mb-1">{{ student_info.name }}
+                            <small class="text-muted">{{ student_info.student_id }} · {{ student_info.class_info.name if student_info.class_info else '' }}</small>
+                        </h5>
+                        <span class="badge bg-primary">{{ ed.exam.name }}</span>
+                        <span class="badge bg-info">{{ ed.exam.subject }}</span>
+                    </div>
+                    <div class="text-end">
+                        <div class="fs-3 fw-bold text-primary">{{ ed.summary.total_score }}</div>
+                        <small class="text-muted">满分 {{ ed.exam.total_score }}</small>
+                    </div>
+                </div>
+
+                <!-- 各题得分明细 -->
+                {% if ed.details %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="table-light">
+                            <tr><th>题号</th><th>满分</th><th>得分</th><th>得分率</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for d in ed.details %}
+                            <tr>
+                                <td>第{{ d.question_number }}题</td>
+                                <td>{{ d.total_points }}</td>
+                                <td class="fw-bold {% if d.score != None and d.score >= d.total_points * 0.8 %}text-success{% elif d.score != None and d.score >= d.total_points * 0.6 %}text-warning{% elif d.score != None %}text-danger{% endif %}">
+                                    {{ d.score if d.score != None else '-' }}
+                                </td>
+                                <td>
+                                    {% if d.score != None and d.total_points > 0 %}
+                                    <div class="progress" style="height:18px">
+                                        <div class="progress-bar {% if d.score/d.total_points >= 0.8 %}bg-success{% elif d.score/d.total_points >= 0.6 %}bg-warning{% else %}bg-danger{% endif %}"
+                                             style="width:{{ (d.score/d.total_points*100)|int }}%">{{ (d.score/d.total_points*100)|int }}%</div>
+                                    </div>
+                                    {% else %}-{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+
+                <!-- 查看标注答题卡 -->
+                {% if ed.sheet and ed.sheet.annotated_path %}
+                <a href="/{{ ed.sheet.annotated_path }}" target="_blank" class="btn btn-outline-primary btn-sm mt-2">
+                    {% if ed.sheet.pdf_path or ed.sheet.annotated_path.endswith('.pdf') %}
+                    <i class="bi bi-file-earmark-pdf"></i> 查看答题卡评分标注（PDF）
+                    {% else %}
+                    <i class="bi bi-image"></i> 查看答题卡评分标注
+                    {% endif %}
+                </a>
+                {% elif ed.sheet and ed.sheet.image_path %}
+                <a href="/{{ ed.sheet.image_path }}" target="_blank" class="btn btn-outline-secondary btn-sm mt-2">
+                    <i class="bi bi-image"></i> 查看答题卡
+                </a>
+                {% endif %}
+
+                <!-- 排名 -->
+                {% if ed.summary.rank_in_class or ed.summary.rank_in_grade %}
+                <div class="mt-2">
+                    {% if ed.summary.rank_in_class %}<span class="badge bg-info">班级排名：第{{ ed.summary.rank_in_class }}名</span>{% endif %}
+                    {% if ed.summary.rank_in_grade %}<span class="badge bg-primary">年级排名：第{{ ed.summary.rank_in_grade }}名</span>{% endif %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            {% if not exams_data %}
+            <div class="card p-5 text-center mt-4 text-muted"><i class="bi bi-inbox" style="font-size:3rem"></i><p class="mt-2">暂无成绩记录</p></div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

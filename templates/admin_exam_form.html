@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ '编辑' if action == 'edit' else '创建' }}考试{% endblock %}
+{% block content %}
+<div class="container mt-4"><div class="row justify-content-center"><div class="col-md-7">
+    <h4 class="mb-3">{{ '编辑' if action == 'edit' else '创建' }}考试</h4>
+    <div class="card p-4"><form method="POST">
+        <div class="mb-3"><label class="form-label">考试名称</label><input type="text" name="name" class="form-control" value="{{ exam.name if action == 'edit' else '' }}" placeholder="如：2024期末考试" required></div>
+        <div class="row g-3">
+            <div class="col-md-4"><label class="form-label">科目</label><input type="text" name="subject" class="form-control" value="{{ exam.subject if action == 'edit' else '数学' }}" required></div>
+            <div class="col-md-4"><label class="form-label">满分</label><input type="number" name="total_score" class="form-control" value="{{ exam.total_score if action == 'edit' else 100 }}" required></div>
+            <div class="col-md-4"><label class="form-label">日期</label><input type="date" name="exam_date" class="form-control" value="{{ exam.exam_date if action == 'edit' else '' }}"></div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3"><i class="bi bi-check-lg"></i> 保存</button>
+        <a href="{{ url_for('admin_exams') }}" class="btn btn-outline-secondary mt-3">取消</a>
+    </form></div>
+</div></div></div>
+{% endblock %}
