@@ -29,11 +29,14 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
     'DATABASE_URL', 'sqlite:///grading.db'
 ).replace('postgres://', 'postgresql://', 1)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
-app.config['ANSWER_SHEET_FOLDER'] = os.path.join(app.root_path, 'static', 'answer_sheets')
+
+# 数据目录：Render用/data持久化目录，本地用app目录
+DATA_DIR = os.environ.get('DATA_DIR', os.path.join(app.root_path, 'static'))
+app.config['UPLOAD_FOLDER'] = os.path.join(DATA_DIR, 'uploads')
+app.config['ANSWER_SHEET_FOLDER'] = os.path.join(DATA_DIR, 'answer_sheets')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['ANSWER_SHEET_FOLDER'], exist_ok=True)
-os.makedirs(os.path.join(app.root_path, 'static', 'uploads', 'pdf_pages'), exist_ok=True)
+os.makedirs(os.path.join(DATA_DIR, 'uploads', 'pdf_pages'), exist_ok=True)
 app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024  # 64MB for PDF
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'pdf'}
 
@@ -529,6 +532,16 @@ def save_file(file_obj, prefix='img'):
         file_obj.save(fp)
         return f'static/uploads/{fn}'
     return ''
+
+# 文件访问路由：兼容 Render 部署（文件可能在 /data 目录）
+@app.route('/static/uploads/<path:filename>')
+def serve_upload(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+@app.route('/static/answer_sheets/<path:filename>')
+def serve_answer_sheet(filename):
+    return send_from_directory(app.config['ANSWER_SHEET_FOLDER'], filename)
+
 
 def admin_required(f):
     @wraps(f)
