@@ -2,7 +2,7 @@ services:
   - type: web
     name: grading-system
     runtime: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: apt-get update && apt-get install -y libmupdf-dev mupdf-tools && pip install -r requirements.txt
     startCommand: gunicorn app:app
     plan: free
     envVars:

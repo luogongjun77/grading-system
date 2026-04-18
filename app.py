@@ -16,12 +16,23 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
 from PIL import Image, ImageDraw, ImageFont
-import fitz  # PyMuPDF
-import reportlab.lib.pagesizes as pagesizes
-from reportlab.pdfgen import canvas
-from reportlab.lib.units import mm, cm
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
+
+# PDF相关库（可选，部署环境可能不支持）
+HAS_FITZ = HAS_REPORTLAB = False
+try:
+    import fitz  # PyMuPDF
+    HAS_FITZ = True
+except ImportError:
+    pass
+try:
+    import reportlab.lib.pagesizes as pagesizes
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.units import mm, cm
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    HAS_REPORTLAB = True
+except ImportError:
+    pass
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', os.urandom(24).hex())
@@ -259,6 +270,8 @@ JSON格式：{{"score":分数,"feedback":"反馈","correctness":"正确/部分�
 
 def pdf_to_images(pdf_path, output_dir, dpi=200, prefix='page'):
     """将PDF每页转为图片，返回图片路径列表"""
+    if not HAS_FITZ:
+        return []
     full_path = os.path.join(app.root_path, pdf_path) if not os.path.isabs(pdf_path) else pdf_path
     if not os.path.exists(full_path):
         return []
@@ -284,6 +297,8 @@ def pdf_to_images(pdf_path, output_dir, dpi=200, prefix='page'):
 
 def annotate_pdf_with_scores(pdf_path, score_details, questions, total_score, exam_name=''):
     """在PDF答题卡上直接标注评分，输出标注后的PDF"""
+    if not HAS_FITZ:
+        return pdf_path
     full_path = os.path.join(app.root_path, pdf_path) if not os.path.isabs(pdf_path) else pdf_path
     if not os.path.exists(full_path):
         return pdf_path
@@ -442,6 +457,8 @@ def annotate_answer_sheet(image_path, score_details, questions):
 
 def annotate_image_as_pdf(image_path, score_details, questions, total_score, exam_name=''):
     """将图片答题卡转PDF并标注评分，输出PDF格式"""
+    if not HAS_REPORTLAB:
+        return image_path
     full = os.path.join(app.root_path, image_path) if not os.path.isabs(image_path) else image_path
     if not os.path.exists(full): return ''
 
@@ -478,6 +495,8 @@ def annotate_image_as_pdf(image_path, score_details, questions, total_score, exa
 
 def generate_answer_sheet_pdf(exam, questions_by_group):
     """生成空白答题卡PDF"""
+    if not HAS_REPORTLAB:
+        return ''
     filename = f'answer_sheet_exam{exam.id}_{uuid.uuid4().hex[:6]}.pdf'
     filepath = os.path.join(app.config['ANSWER_SHEET_FOLDER'], filename)
 
